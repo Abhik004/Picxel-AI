@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useId, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { signup } from "@/app/actions/auth-actions";
+import { redirect } from "next/navigation";
 
 const passwordValidator = new RegExp(
   "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})"
@@ -48,6 +52,8 @@ const formSchema = z.object({
 });
 
 const SignupForm = ({ className }: { className?: string }) => {
+  const toastId=useId();
+  const [loading,setLoading]=useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,7 +64,23 @@ const SignupForm = ({ className }: { className?: string }) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    toast.loading("Signing up....",{id:toastId});
+    setLoading(true);
+    const formData=new FormData()
+    formData.append("full_name",values.full_name);
+    formData.append("email",values.email);
+    formData.append("password",values.password);
+
+    const {success,error}=await signup(formData);
+    if(!success){
+      toast.error(String(error),{id:toastId});
+      setLoading(false);
+    } else{
+      toast.success("Signup successfully.. Confirm your email address",{id:toastId});
+      setLoading(false);
+      redirect('/login')
+    }
     console.log(values);
   }
 
@@ -122,7 +144,8 @@ const SignupForm = ({ className }: { className?: string }) => {
             )}
           />
 
-          <Button className="w-full" type="submit">
+          <Button className="w-full" type="submit" disabled={loading}>
+            {loading && <Loader2 className="animate-spin mr-2 h-4 w-4"/>}
             Sign Up
           </Button>
         </form>

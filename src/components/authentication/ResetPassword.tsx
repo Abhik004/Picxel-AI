@@ -12,7 +12,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
 })
 
-const ResetForm = () => {
+const ResetPassword = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,4 +50,4 @@ const ResetForm = () => {
   )
 }
 
-export default ResetForm
+export default ResetPassword
